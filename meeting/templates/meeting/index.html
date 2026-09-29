@@ -1,0 +1,97 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1">
+    <title>{{ meeting.title }} | PwS</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
+          rel="stylesheet">
+</head>
+<body class="bg-light">
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container">
+        <a class="navbar-brand fw-bold" href="/">PwS</a>
+        <div class="ms-auto d-flex align-items-center gap-3">
+            <span class="text-light">{{ request.user.username }}</span>
+            <form method="post" action="{% url 'logout' %}">
+                {% csrf_token %}
+                <button class="btn btn-outline-light btn-sm">
+                    Log out
+                </button>
+            </form>
+        </div>
+    </div>
+</nav>
+
+<main class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-7 col-md-9">
+
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4 p-md-5">
+                    <h1 class="h3 mb-2">{{ meeting.title }}</h1>
+                    <p class="text-muted mb-4">
+                        Choose your preferred time for
+                        {{ meeting.saturday|date:"F j, Y" }}.
+                    </p>
+
+                    <form method="post"
+                          action="{% url 'meeting:vote' %}">
+                        {% csrf_token %}
+
+                        {% for day, label in meeting.slots.model.Day.choices %}
+                            <h2 class="h5 mt-4 mb-3">
+                                {% if day == "sat" %}
+                                    Saturday
+                                    {{ meeting.saturday|date:"F j" }}
+                                {% else %}
+                                    Sunday {{ sunday|date:"F j" }}
+                                {% endif %}
+                            </h2>
+
+                            {% for slot in meeting.slots.all %}
+                                {% if slot.day == day %}
+                                    <label class="d-flex align-items-center
+                                                  justify-content-between
+                                                  border rounded p-3 mb-2
+                                                  bg-white">
+                                        <span>
+                                            <input class="form-check-input me-2"
+                                                   type="radio"
+                                                   name="slot"
+                                                   value="{{ slot.pk }}"
+                                                   {% if current_vote.slot_id == slot.pk %}
+                                                       checked
+                                                   {% endif %}
+                                                   required>
+                                            {{ slot.get_period_display }}
+                                        </span>
+                                        <span class="badge text-bg-secondary">
+                                            {{ slot.votes.count }}
+                                        </span>
+                                    </label>
+                                {% endif %}
+                            {% endfor %}
+                        {% endfor %}
+
+                        <button class="btn btn-primary w-100 mt-4"
+                                type="submit">
+                            {% if current_vote %}
+                                Update my vote
+                            {% else %}
+                                Submit my vote
+                            {% endif %}
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</main>
+
+</body>
+</html>
